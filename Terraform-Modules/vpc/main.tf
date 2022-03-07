@@ -5,8 +5,8 @@ locals {
 }
 
 provider "aws" {
-  profile = local.profile
-  region  = local.region
+  #profile = local.profile
+  region = local.region
 }
 
 # VPC module

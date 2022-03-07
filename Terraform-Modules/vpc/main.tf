@@ -1,4 +1,4 @@
-#locals config
+#locals config   --
 locals {
   profile = "default"
   region  = "us-east-1"

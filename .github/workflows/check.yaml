@@ -1,11 +1,11 @@
-name: Demo Check
+name: Jira Task Check
 
 on:
   pull_request:
     branches: [main]
 
 jobs:
-  demo-check:
+  Result:
     #name: Custom Commit Status
     runs-on: ubuntu-latest
     permissions:

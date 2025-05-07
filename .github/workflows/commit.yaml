@@ -28,7 +28,7 @@ jobs:
 
           if [[ "$BRANCH_NAME_LOWER" =~ $REGEX_PATTERN ]]; then
             echo "✅ Branch name is valid."
-          elif [[ "$PR_TITLE_LOWER" =~ REGEX_PATTERN ]]; then
+          elif [[ "$PR_TITLE_LOWER" =~ $REGEX_PATTERN ]]; then
             echo "✅ Pr Title is valid."
           else
             echo "❌ Neither branch name nor pr title starts with: fwass*"

@@ -29,7 +29,7 @@ jobs:
         with:
           script: |
             const status = '${{ steps.validate.outputs.status }}';
-            github.repos.createCommitStatus({
+            await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.sha,
@@ -37,7 +37,8 @@ jobs:
               context: 'Demo Check',
               description: status === 'success'
                 ? 'Branch name is valid ✅'
-                : 'Branch must start with "demo-" ❌'
+                : 'Branch must start with "demo-" ❌',
+              target_url: 'https://docs.github.com/en/actions'
             });
 
       - name: Fail if branch is invalid

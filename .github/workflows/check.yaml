@@ -17,8 +17,11 @@ jobs:
       - name: Validate branch prefix
         id: validate
         run: |
-          [[ "${GITHUB_HEAD_REF}" == demo-* ]] && echo "status=success" || echo "status=failure"
-        shell: bash
+          if [[ "${GITHUB_HEAD_REF}" == demo-* ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set commit status
         env:
@@ -46,5 +49,5 @@ jobs:
 EOF
 
       - name: Fail if branch is invalid
-        if: env.STATUS == 'failure'
+        if: steps.validate.outputs.status == 'failure'
         run: exit 1

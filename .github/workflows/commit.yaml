@@ -24,7 +24,7 @@ jobs:
           BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]')
           PR_TITLE_LOWER=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
 
-          REGEX_PATTERN="r'^fwaas-[1-9]\d*(($)|([^a-zA-Z\d]))'"
+          REGEX_PATTERN='^fwaas-[1-9][0-9]*($|[^a-zA-Z0-9])'
 
           if [[ "$BRANCH_NAME_LOWER" =~ $REGEX_PATTERN ]]; then
             echo "✅ Branch name is valid."

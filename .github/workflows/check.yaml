@@ -21,11 +21,11 @@ jobs:
           BRANCH="${{ github.head_ref }}"
           COMMITS=$(git log origin/"$BRANCH" --pretty=format:"%s" -n 10 || echo "")
           if [[ "$BRANCH" == devsre-* ]] || echo "$COMMITS" | grep -q "^devsre-"; then
-            echo "status=success" >> $GITHUB_OUTPUT
-            echo "desc=jira ticket validated" >> $GITHUB_OUTPUT
+            echo "status=success" >> "$GITHUB_OUTPUT"
+            echo "desc=jira ticket validated" >> "$GITHUB_OUTPUT"
           else
-            echo "status=failure" >> $GITHUB_OUTPUT
-            echo "desc=Start branch or commit message with devsre-" >> $GITHUB_OUTPUT
+            echo "status=failure" >> "$GITHUB_OUTPUT"
+            echo "desc=Start branch or commit message with devsre-" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create custom commit check
@@ -39,15 +39,10 @@ jobs:
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/check-runs \
-            -d @- <<EOF
-          {
-            "name": "Jira task checker",
-            "head_sha": "$SHA",
-            "status": "completed",
-            "conclusion": "$STATUS",
-            "output": {
-              "title": "Jira task checker",
-              "summary": "$DESC"
-            }
-          }
-EOF
+            -d "$(jq -n --arg name "Jira task checker" \
+                        --arg sha "$SHA" \
+                        --arg status "completed" \
+                        --arg conclusion "$STATUS" \
+                        --arg title "Jira task checker" \
+                        --arg summary "$DESC" \
+                        '{name: $name, head_sha: $sha, status: $status, conclusion: $conclusion, output: {title: $title, summary: $summary}}')"

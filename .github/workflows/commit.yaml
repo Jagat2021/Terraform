@@ -1,0 +1,37 @@
+name: Check Jira Ticket Association
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches:
+      - main
+
+jobs:
+  Check-Jira-Ticket:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate PR Branch Name or Commit Message
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          echo "Branch name: $BRANCH_NAME"
+          echo "Latest commit message: $PR_TITLE"
+          
+          BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]')
+          PR_TITLE_LOWER=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
+
+          if [[ "$BRANCH_NAME_LOWER" == fwass-* ]]; then
+            echo "✅ Branch name is valid."
+          elif [[ "$PR_TITLE_LOWER" == fwass-* ]]; then
+            echo "✅ Commit message is valid."
+          else
+            echo "❌ Neither branch name nor commit message starts with 'fwass-<ticket_number>' OR 'fwass <ticket_number>'."
+            export GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+            gh pr comment "${{ github.event.pull_request.number }}" \
+              --body "❌Jira Ticket Validation Failed:- Start the branch name OR commit message in a format like: \`fwass-1234\` or \`fwass <single space> 1234\`. Example: fwass-1234, fwass 1234"
+            exit 1
+          fi

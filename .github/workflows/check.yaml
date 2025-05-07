@@ -6,7 +6,7 @@ on:
 
 jobs:
   demo-check:
-    name: Custom Commit Status
+    #name: Custom Commit Status
     runs-on: ubuntu-latest
     permissions:
       statuses: write

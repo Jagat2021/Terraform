@@ -1,52 +1,53 @@
-name: Jira Task Check
+name: Jira Task Checker
 
 on:
   pull_request:
-    branches: [main]
+    types: [opened, synchronize, edited]
 
 jobs:
-  Result:
-    #name: Custom Commit Status
+  commit-check:
+    name: commit-check
     runs-on: ubuntu-latest
-    if: always()
     permissions:
-      statuses: write
-
+      checks: write
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Validate branch prefix
+      - name: Validate commit or branch
         id: validate
         run: |
-          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF##*/}}"
-          if [[ "$BRANCH_NAME" == demo-* ]]; then
-            echo "status=success" >> "$GITHUB_OUTPUT"
+          BRANCH="${{ github.head_ref }}"
+          COMMITS=$(git log origin/"$BRANCH" --pretty=format:"%s" -n 10 || echo "")
+          if [[ "$BRANCH" == devsre-* ]] || echo "$COMMITS" | grep -q "^devsre-"; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "desc=jira ticket validated" >> $GITHUB_OUTPUT
           else
-            echo "status=failure" >> "$GITHUB_OUTPUT"
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "desc=Start branch or commit message with devsre-" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set commit status
+      - name: Create custom commit check
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.pull_request.head.sha }}
           STATUS: ${{ steps.validate.outputs.status }}
-          SHA: ${{ github.sha }}
-          REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.run_id }}
+          DESC: ${{ steps.validate.outputs.desc }}
         run: |
-          OWNER="${REPO%%/*}"
-          REPO_NAME="${REPO##*/}"
-          DESCRIPTION=$([ "$STATUS" = "success" ] && echo "Branch name is valid ✅" || echo "Branch must start with 'demo-' ❌")
-          TARGET_URL="https://github.com/$REPO/actions/runs/$RUN_ID"
-
-          curl -s -X POST "https://api.github.com/repos/$OWNER/$REPO_NAME/statuses/$SHA" \
-            -H "Authorization: Bearer $GH_TOKEN" \
+          curl -s -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            -d "$(jq -nc --arg state "$STATUS" \
-                          --arg context "Demo Check" \
-                          --arg description "$DESCRIPTION" \
-                          --arg target_url "$TARGET_URL" \
-                          '{state: $state, context: $context, description: $description, target_url: $target_url}')"
-
-      - name: Fail if branch is invalid
-        if: steps.validate.outputs.status == 'failure'
-        run: exit 1
+            https://api.github.com/repos/${{ github.repository }}/check-runs \
+            -d @- <<EOF
+          {
+            "name": "Jira task checker",
+            "head_sha": "$SHA",
+            "status": "completed",
+            "conclusion": "$STATUS",
+            "output": {
+              "title": "Jira task checker",
+              "summary": "$DESC"
+            }
+          }
+EOF

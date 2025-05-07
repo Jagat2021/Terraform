@@ -2,45 +2,49 @@ name: Demo Check
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   demo-check:
+    name: Custom Commit Status
     runs-on: ubuntu-latest
+    permissions:
+      statuses: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Validate branch prefix
         id: validate
         run: |
-          echo "Checking branch name: ${{ github.head_ref }}"
-          if [[ "${{ github.head_ref }}" == demo-* ]]; then
-            echo "status=success" >> $GITHUB_OUTPUT
-          else
-            echo "status=failure" >> $GITHUB_OUTPUT
-            echo "Branch name must start with 'demo-'" >&2
-          fi
+          [[ "${GITHUB_HEAD_REF}" == demo-* ]] && echo "status=success" || echo "status=failure"
+        shell: bash
 
       - name: Set commit status
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const status = '${{ steps.validate.outputs.status }}';
-            await github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.sha,
-              state: status,
-              context: 'Demo Check',
-              description: status === 'success'
-                ? 'Branch name is valid ✅'
-                : 'Branch must start with "demo-" ❌',
-              target_url: 'https://docs.github.com/en/actions'
-            });
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STATUS: ${{ steps.validate.outputs.status }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          OWNER="${REPO%%/*}"
+          REPO_NAME="${REPO##*/}"
+          DESCRIPTION=$([ "$STATUS" = "success" ] && echo "Branch name is valid ✅" || echo "Branch must start with 'demo-' ❌")
+          TARGET_URL="https://github.com/$REPO/actions/runs/$RUN_ID"
+
+          curl -s -X POST "https://api.github.com/repos/$OWNER/$REPO_NAME/statuses/$SHA" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -d @- <<EOF
+{
+  "state": "$STATUS",
+  "context": "Demo Check",
+  "description": "$DESCRIPTION",
+  "target_url": "$TARGET_URL"
+}
+EOF
 
       - name: Fail if branch is invalid
-        if: steps.validate.outputs.status == 'failure'
+        if: env.STATUS == 'failure'
         run: exit 1

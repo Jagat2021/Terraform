@@ -1,4 +1,4 @@
-name: Check Jira Ticket Association
+name: Jira Ticket Association
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  Check-Jira-Ticket:
+  Checker:
     runs-on: ubuntu-latest
 
     steps:

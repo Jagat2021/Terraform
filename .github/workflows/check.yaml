@@ -8,6 +8,7 @@ jobs:
   Result:
     #name: Custom Commit Status
     runs-on: ubuntu-latest
+    if: always()
     permissions:
       statuses: write
 

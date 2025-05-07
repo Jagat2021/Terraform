@@ -6,7 +6,7 @@ on:
 
 jobs:
   jira-commit-check:
-    name: commit-check
+    name: jira-commit-check
     runs-on: ubuntu-latest
     permissions:
       checks: write

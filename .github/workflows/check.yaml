@@ -9,7 +9,7 @@ jobs:
     name: Custom Commit Status
     runs-on: ubuntu-latest
     permissions:
-      statuses: write
+      statuses: write  # Needed to post commit status
 
     steps:
       - uses: actions/checkout@v4
@@ -17,10 +17,11 @@ jobs:
       - name: Validate branch prefix
         id: validate
         run: |
-          if [[ "${GITHUB_HEAD_REF}" == demo-* ]]; then
-            echo "status=success" >> $GITHUB_OUTPUT
+          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF##*/}}"
+          if [[ "$BRANCH_NAME" == demo-* ]]; then
+            echo "status=success" >> "$GITHUB_OUTPUT"
           else
-            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "status=failure" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set commit status

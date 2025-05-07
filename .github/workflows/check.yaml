@@ -1,0 +1,45 @@
+name: Demo Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  demo-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate branch prefix
+        id: validate
+        run: |
+          echo "Checking branch name: ${{ github.head_ref }}"
+          if [[ "${{ github.head_ref }}" == demo-* ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "Branch name must start with 'demo-'" >&2
+          fi
+
+      - name: Set commit status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.validate.outputs.status }}';
+            github.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: status,
+              context: 'Demo Check',
+              description: status === 'success'
+                ? 'Branch name is valid ✅'
+                : 'Branch must start with "demo-" ❌'
+            });
+
+      - name: Fail if branch is invalid
+        if: steps.validate.outputs.status == 'failure'
+        run: exit 1

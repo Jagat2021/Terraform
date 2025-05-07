@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, edited]
 
 jobs:
-  commit-check:
+  jira-commit-check:
     name: commit-check
     runs-on: ubuntu-latest
     permissions:

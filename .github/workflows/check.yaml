@@ -9,7 +9,7 @@ jobs:
     name: Custom Commit Status
     runs-on: ubuntu-latest
     permissions:
-      statuses: write  # Needed to post commit status
+      statuses: write
 
     steps:
       - uses: actions/checkout@v4
@@ -40,14 +40,11 @@ jobs:
           curl -s -X POST "https://api.github.com/repos/$OWNER/$REPO_NAME/statuses/$SHA" \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            -d @- <<EOF
-{
-  "state": "$STATUS",
-  "context": "Demo Check",
-  "description": "$DESCRIPTION",
-  "target_url": "$TARGET_URL"
-}
-EOF
+            -d "$(jq -nc --arg state "$STATUS" \
+                          --arg context "Demo Check" \
+                          --arg description "$DESCRIPTION" \
+                          --arg target_url "$TARGET_URL" \
+                          '{state: $state, context: $context, description: $description, target_url: $target_url}')"
 
       - name: Fail if branch is invalid
         if: steps.validate.outputs.status == 'failure'

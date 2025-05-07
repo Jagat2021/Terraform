@@ -24,9 +24,11 @@ jobs:
           BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]')
           PR_TITLE_LOWER=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
 
-          if [[ "$BRANCH_NAME_LOWER" == fwass-* ]]; then
+          REGEX_PATTERN = r'^fwaas-[1-9]\d*(($)|([^a-zA-Z\d]))'
+
+          if [[ "$BRANCH_NAME_LOWER" =~ $REGEX_PATTERN ]]; then
             echo "✅ Branch name is valid."
-          elif [[ "$PR_TITLE_LOWER" == fwass* ]]; then
+          elif [[ "$PR_TITLE_LOWER" =~ REGEX_PATTERN ]]; then
             echo "✅ Pr Title is valid."
           else
             echo "❌ Neither branch name nor pr title starts with: fwass*"

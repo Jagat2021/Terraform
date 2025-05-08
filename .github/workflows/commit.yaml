@@ -1,0 +1,39 @@
+name: Jira Ticket Association
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches:
+      - main
+
+jobs:
+  Checker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate PR Branch Name or Pr Title
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          echo "Branch name: $BRANCH_NAME"
+          echo "Latest commit message: $PR_TITLE"
+          
+          BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]')
+          PR_TITLE_LOWER=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
+
+          REGEX_PATTERN='^fwaas-[1-9][0-9]*($|[^a-zA-Z0-9])'
+
+          if [[ "$BRANCH_NAME_LOWER" =~ $REGEX_PATTERN ]]; then
+            echo "✅ Branch name is valid."
+          elif [[ "$PR_TITLE_LOWER" =~ $REGEX_PATTERN ]]; then
+            echo "✅ Pr Title is valid."
+          else
+            echo "❌ Neither branch name nor pr title starts with: fwaas-"
+            export GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+            gh pr comment "${{ github.event.pull_request.number }}" \
+              --body "❌Jira Ticket Validation Failed:- Branch name OR pr title MUST start with in format: fwaas-*. Example: fwaas-1234, fwaas-8574"
+            exit 1
+          fi

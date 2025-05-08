@@ -1,0 +1,13 @@
+name: Jira Ticket Association
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches:
+      - main
+
+jobs:
+  Checker:
+    name: .
+    runs-on: ubuntu-latest
+    uses: ./commit.yaml
+

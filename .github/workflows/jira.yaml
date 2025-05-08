@@ -8,5 +8,5 @@ on:
 
 jobs:
   Checker:
-    name: >
+    name: ">"
     uses: ./.github/workflows/commit.yaml

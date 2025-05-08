@@ -1,0 +1,12 @@
+name: Associate Jira Ticket
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches:
+      - main
+
+jobs:
+  Checker:
+    name: ">"
+    uses: ./.github/workflows/commit.yaml

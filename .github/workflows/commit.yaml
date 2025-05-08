@@ -4,7 +4,7 @@ on:
 
 jobs:
   Checker:
-    name: .
+    name: ">" # appears last in the commit check name
     runs-on: ubuntu-latest
 
     steps:

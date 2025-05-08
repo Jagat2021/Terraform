@@ -9,4 +9,4 @@ on:
 jobs:
   Checker:
     name: .
-    uses: ./commit.yaml
+    uses: ./commit.yaml@main

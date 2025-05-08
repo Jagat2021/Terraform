@@ -1,12 +1,10 @@
 name: Jira Ticket Association
 on:
-  pull_request:
-    types: [opened, edited, reopened, synchronize]
-    branches:
-      - main
+  workflow_call:
 
 jobs:
   Checker:
+    name: .
     runs-on: ubuntu-latest
 
     steps:

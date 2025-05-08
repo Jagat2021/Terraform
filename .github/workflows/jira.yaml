@@ -1,4 +1,4 @@
-name: Associate Jira Ticket
+name: Associate Jira Ticket #appear first of the commit check name
 
 on:
   pull_request:
@@ -8,5 +8,5 @@ on:
 
 jobs:
   Checker:
-    name: ">"
+    name: ">" #appear in the middle of the commit check name
     uses: ./.github/workflows/commit.yaml
